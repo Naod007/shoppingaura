@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Market — Calm, Modern Marketplace</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#172554', // Deep Navy
+                        secondary: '#3B82F6', // Soft Blue
+                        bgOffWhite: '#F8FAFC', // Warm Off-White
+                        cardWhite: '#FFFFFF',
+                        darkSlate: '#172033', // Text
+                        secondaryText: '#64748B',
+                        accent: '#F97370', // Soft Coral
+                        success: '#22C55E',
+                        borderCol: '#E2E8F0'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'subtle': '0 4px 20px -2px rgba(23, 37, 84, 0.05)',
+                        'elevated': '0 10px 30px -4px rgba(23, 37, 84, 0.08)',
+                        'floating': '0 20px 40px -8px rgba(23, 37, 84, 0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom smooth scrollbar & base styles */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8FAFC;
+            color: #172033;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F8FAFC;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-bgOffWhite text-darkSlate antialiased min-h-screen flex flex-col selection:bg-secondary/20 selection:text-primary">
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <div id="quick-view-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div id="quick-view-content" class="bg-cardWhite rounded-2xl shadow-floating max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300 relative">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <header id="site-header" class="sticky top-0 z-40 bg-cardWhite/90 backdrop-blur-md border-b border-borderCol transition-all duration-300">
+        <!-- Top Announcement Bar -->
+        <div class="bg-primary text-white text-xs font-medium py-2 px-4 text-center flex items-center justify-center gap-4">
+            <span><i class="fa-solid fa-bolt text-accent mr-1"></i> Spring Event: Free express delivery on orders over $50</span>
+            <span class="hidden md:inline text-white/70">|</span>
+            <span class="hidden md:inline">Use code <strong>AURA2026</strong> for 10% off</span>
+        </div>
+
+        <!-- Main Desktop & Mobile Navigation Header -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+            
+            <!-- Mobile Menu Toggle & Logo -->
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="lg:hidden text-primary text-xl p-2 rounded-xl hover:bg-bgOffWhite transition-colors focus:outline-none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <a href="#home" onclick="router.navigate('home')" class="flex items-center gap-2 group">
+                    <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center text-lg font-bold shadow-subtle group-hover:bg-secondary transition-colors">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-primary leading-none">AURA</span>
+                        <span class="text-[10px] tracking-widest text-secondaryText uppercase font-semibold">Marketplace</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Location Indicator (Desktop) -->
+            <div class="hidden xl:flex items-center gap-2 text-xs text-secondaryText bg-bgOffWhite px-3 py-2 rounded-xl border border-borderCol cursor-pointer hover:border-secondary transition-colors" onclick="showLocationModal()">
+                <i class="fa-solid fa-location-dot text-secondary"></i>
+                <div class="flex flex-col text-left">
+                    <span class="text-[10px] text-secondaryText">Deliver to</span>
+                    <span id="current-location-text" class="font-bold text-darkSlate truncate max-w-[120px]">New York 10001</span>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-2xl relative hidden md:block">
+                <form id="search-form" onsubmit="handleSearchSubmit(event)" class="flex items-center bg-bgOffWhite border border-borderCol rounded-2xl overflow-hidden focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/20 transition-all">
+                    <select id="search-category" class="bg-transparent text-xs font-semibold text-secondaryText px-4 py-3 border-r border-borderCol focus:outline-none cursor-pointer">
+                        <option value="all">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="computers">Computers</option>
+                        <option value="phones">Phones</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="home">Home & Kitchen</option>
+                        <option value="beauty">Beauty</option>
+                        <option value="sports">Sports</option>
+                        <option value="gaming">Gaming</option>
+                    </select>
+                    <input type="text" id="search-input" placeholder="Search 40+ high-end products, brands, tags..." class="w-full bg-transparent px-4 py-3 text-sm text-darkSlate focus:outline-none placeholder:text-secondaryText/60">
+                    <button type="submit" class="bg-primary hover:bg-secondary text-white px-6 py-3 transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Header Action Icons (Account, Wishlist, Cart) -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- Mobile Search Toggle -->
+                <button onclick="toggleMobileSearch()" class="md:hidden text-darkSlate hover:text-secondary p-2 rounded-xl transition-colors">
+                    <i class="fa-solid fa-search text-lg"></i>
+                </button>
+
+                <!-- Wishlist Icon -->
+                <button onclick="router.navigate('wishlist')" class="relative p-2.5 rounded-xl hover:bg-bgOffWhite text-darkSlate hover:text-accent transition-colors flex items-center gap-2 group" title="Wishlist">
+                    <i class="fa-regular fa-heart text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="hidden sm:inline text-xs font-semibold">Wishlist</span>
+                    <span id="wishlist-badge" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-subtle scale-100 transition-transform">0</span>
+                </button>
+
+                <!-- Cart Icon -->
+                <button onclick="router.navigate('cart')" class="relative p-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 text-primary transition-colors flex items-center gap-2 group" title="Cart">
+                    <i class="fa-solid fa-bag-shopping text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="hidden sm:inline text-xs font-bold">Cart</span>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-subtle">0</span>
+                </button>
+
+                <!-- Account / Login -->
+                <button onclick="handleAccountClick()" class="flex items-center gap-2 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate hover:text-primary transition-colors">
+                    <div class="w-9 h-9 rounded-full bg-borderCol flex items-center justify-center text-primary font-bold text-sm overflow-hidden" id="header-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="hidden lg:flex flex-col text-left">
+                        <span class="text-[10px] text-secondaryText" id="header-user-status">Hello, Sign in</span>
+                        <span class="text-xs font-bold text-darkSlate" id="header-user-name">My Account</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Expandable Search Bar -->
+        <div id="mobile-search-bar" class="hidden md:hidden px-4 pb-4">
+            <form onsubmit="handleMobileSearchSubmit(event)" class="flex items-center bg-bgOffWhite border border-borderCol rounded-xl overflow-hidden">
+                <input type="text" id="mobile-search-input" placeholder="Search products..." class="w-full bg-transparent px-4 py-2.5 text-sm text-darkSlate focus:outline-none">
+                <button type="submit" class="bg-primary text-white px-4 py-2.5">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Sub-header Category Navigation (Desktop) -->
+        <div class="border-t border-borderCol hidden lg:block bg-cardWhite">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs font-semibold text-darkSlate">
+                <div class="flex items-center gap-1 overflow-x-auto hide-scrollbar py-2.5">
+                    <button onclick="filterByCategory('all')" class="px-3 py-1.5 rounded-lg hover:bg-primary/5 hover:text-primary transition-colors text-primary font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-bars-staggered"></i> All Products
+                    </button>
+                    <span class="text-borderCol">|</span>
+                    <button onclick="filterByCategory('electronics')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Electronics</button>
+                    <button onclick="filterByCategory('computers')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Computers & Tech</button>
+                    <button onclick="filterByCategory('phones')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Smartphones</button>
+                    <button onclick="filterByCategory('fashion')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Fashion</button>
+                    <button onclick="filterByCategory('home')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Home & Kitchen</button>
+                    <button onclick="filterByCategory('beauty')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Beauty & Care</button>
+                    <button onclick="filterByCategory('sports')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Sports & Fitness</button>
+                    <button onclick="filterByCategory('gaming')" class="px-3 py-1.5 rounded-lg hover:bg-bgOffWhite transition-colors">Gaming</button>
+                </div>
+                <div class="flex items-center gap-4 text-secondaryText">
+                    <a href="#products" onclick="router.navigate('products')" class="hover:text-primary transition-colors flex items-center gap-1"><i class="fa-solid fa-fire text-accent"></i> Flash Deals</a>
+                    <a href="#about" onclick="router.navigate('about')" class="hover:text-primary transition-colors">About Aura</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="mobile-menu-overlay" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden transition-opacity opacity-0 lg:hidden">
+        <div id="mobile-menu-drawer" class="absolute top-0 left-0 bottom-0 w-80 bg-cardWhite shadow-2xl p-6 flex flex-col justify-between transform -translate-x-full transition-transform duration-300">
+            <div>
+                <div class="flex items-center justify-between pb-6 border-b border-borderCol">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <span class="font-extrabold text-lg text-primary">AURA Menu</span>
+                    </div>
+                    <button onclick="closeMobileMenu()" class="text-secondaryText hover:text-darkSlate text-xl p-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="py-6 flex flex-col gap-4 text-sm font-semibold">
+                    <a href="#home" onclick="closeMobileMenu(); router.navigate('home')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-house text-secondary w-5"></i> Home</a>
+                    <a href="#products" onclick="closeMobileMenu(); router.navigate('products')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-shop text-secondary w-5"></i> All Products</a>
+                    <a href="#categories" onclick="closeMobileMenu(); router.navigate('categories')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-layer-group text-secondary w-5"></i> Categories</a>
+                    <a href="#wishlist" onclick="closeMobileMenu(); router.navigate('wishlist')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-regular fa-heart text-accent w-5"></i> Wishlist</a>
+                    <a href="#cart" onclick="closeMobileMenu(); router.navigate('cart')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-bag-shopping text-secondary w-5"></i> Shopping Cart</a>
+                    <a href="#account" onclick="closeMobileMenu(); router.navigate('account')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-user text-secondary w-5"></i> My Account</a>
+                    <a href="#about" onclick="closeMobileMenu(); router.navigate('about')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-circle-info text-secondary w-5"></i> About Aura</a>
+                    <a href="#contact" onclick="closeMobileMenu(); router.navigate('contact')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-bgOffWhite text-darkSlate"><i class="fa-solid fa-headset text-secondary w-5"></i> Contact & Support</a>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-borderCol">
+                <div class="flex items-center justify-between text-xs text-secondaryText">
+                    <span>© 2026 Aura Market</span>
+                    <span>v2.4 Production</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="app-view" class="flex-1">
+        <!-- Dynamically rendered page templates will inject here -->
+    </main>
+
+    <footer class="bg-primary text-white pt-16 pb-12 mt-20 border-t border-primary/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
+                
+                <!-- Brand & Newsletter -->
+                <div class="lg:col-span-2 flex flex-col gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-lg shadow-subtle">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xl font-extrabold tracking-tight text-white leading-none">AURA</span>
+                            <span class="text-[10px] tracking-widest text-secondary/80 uppercase font-semibold">Marketplace</span>
+                        </div>
+                    </div>
+                    <p class="text-white/70 text-sm leading-relaxed max-w-sm">
+                        Discover products you'll love, delivered simply. Built with a calm, modern aesthetic and Amazon-scale reliability.
+                    </p>
+                    <div class="flex flex-col gap-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-white">Subscribe to Aura Insider</span>
+                        <form onsubmit="handleNewsletter(event)" class="flex gap-2 max-w-md">
+                            <input type="email" required placeholder="Enter your email address" class="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-secondary flex-1">
+                            <button type="submit" class="bg-secondary hover:bg-secondary/90 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-subtle">
+                                Join
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Navigation Column 1 -->
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-white">Shop Categories</h4>
+                    <ul class="flex flex-col gap-2.5 text-sm text-white/70">
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'electronics'})" class="hover:text-white transition-colors">Electronics & Audio</a></li>
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'computers'})" class="hover:text-white transition-colors">Computers & Laptops</a></li>
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'phones'})" class="hover:text-white transition-colors">Smartphones & Wearables</a></li>
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'fashion'})" class="hover:text-white transition-colors">Modern Fashion</a></li>
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'home'})" class="hover:text-white transition-colors">Home & Kitchen</a></li>
+                        <li><a href="#products" onclick="router.navigate('products', {cat: 'gaming'})" class="hover:text-white transition-colors">Gaming Rigs</a></li>
+                    </ul>
+                </div>
+
+                <!-- Navigation Column 2 -->
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-white">Customer Service</h4>
+                    <ul class="flex flex-col gap-2.5 text-sm text-white/70">
+                        <li><a href="#contact" onclick="router.navigate('contact')" class="hover:text-white transition-colors">Help Center & Support</a></li>
+                        <li><a href="#contact" onclick="router.navigate('contact')" class="hover:text-white transition-colors">Track Your Order</a></li>
+                        <li><a href="#contact" onclick="router.navigate('contact')" class="hover:text-white transition-colors">Returns & Refunds</a></li>
+                        <li><a href="#contact" onclick="router.navigate('contact')" class="hover:text-white transition-colors">Shipping Information</a></li>
+                        <li><a href="#account" onclick="router.navigate('account')" class="hover:text-white transition-colors">Account Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <!-- Navigation Column 3 -->
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-white">Company & Legal</h4>
+                    <ul class="flex flex-col gap-2.5 text-sm text-white/70">
+                        <li><a href="#about" onclick="router.navigate('about')" class="hover:text-white transition-colors">About Aura Market</a></li>
+                        <li><a href="#about" onclick="router.navigate('about')" class="hover:text-white transition-colors">Careers & Press</a></li>
+                        <li><a href="#about" onclick="router.navigate('about')" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#about" onclick="router.navigate('about')" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#contact" onclick="router.navigate('contact')" class="hover:text-white transition-colors">Partner with Us</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/60">
+                <p>© 2026 Aura Market Inc. All rights reserved. Inspired by Amazon marketplace scale, engineered with calm modern design.</p>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-3 text-lg text-white/80">
+                        <a href="#" class="hover:text-secondary transition-colors"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" class="hover:text-secondary transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="hover:text-secondary transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" class="hover:text-secondary transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================
+           1. PRODUCT DATASET (45+ Rich Products)
+           ========================================== */
+        const PRODUCTS_DATA = [
+            {
+                id: "aur-001",
+                name: "NovaBook Pro 16\" Ultra Laptop",
+                category: "computers",
+                brand: "NovaTech",
+                price: 1499.00,
+                oldPrice: 1699.00,
+                discount: 12,
+                rating: 4.8,
+                reviews: 328,
+                stock: 14,
+                description: "Engineered for unmatched performance, the NovaBook Pro features a breathtaking 16-inch Retina display, next-gen M-series octa-core processor, 32GB unified memory, and 1TB ultra-fast SSD storage. Housed in an aerospace-grade matte aluminum chassis.",
+                images: [
+                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Space Gray", "Silver", "Midnight Navy"],
+                sizes: ["16\" / 32GB / 1TB", "16\" / 16GB / 512GB"],
+                tags: ["featured", "bestseller", "trending"],
+                featured: true,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-002",
+                name: "AuraPulse Wireless Noise-Canceling Headphones",
+                category: "electronics",
+                brand: "AuraAudio",
+                price: 299.00,
+                oldPrice: 349.00,
+                discount: 14,
+                rating: 4.9,
+                reviews: 842,
+                stock: 25,
+                description: "Immerse yourself in pure acoustic bliss. Active noise cancellation powered by dual neural processors, 40-hour battery life, and plush memory foam ear cushions designed for all-day listening comfort.",
+                images: [
+                    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Matte Black", "Warm White", "Navy Blue"],
+                sizes: ["Standard"],
+                tags: ["featured", "bestseller", "trending"],
+                featured: true,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-003",
+                name: "Apex X5 5G Flagship Smartphone",
+                category: "phones",
+                brand: "ApexMobile",
+                price: 999.00,
+                oldPrice: 1099.00,
+                discount: 9,
+                rating: 4.7,
+                reviews: 512,
+                stock: 19,
+                description: "Capture memories in cinematic perfection with a 108MP triple camera array. Powered by a lightning-fast Snapdragon chip, vibrant 120Hz AMOLED display, and all-day intelligent battery.",
+                images: [
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Titanium Gray", "Ocean Blue", "Pure White"],
+                sizes: ["256GB", "512GB"],
+                tags: ["featured", "trending"],
+                featured: true,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-004",
+                name: "Minimalist Ergonomic Mesh Office Chair",
+                category: "home",
+                brand: "ErgoComfort",
+                price: 349.00,
+                oldPrice: 420.00,
+                discount: 17,
+                rating: 4.6,
+                reviews: 190,
+                stock: 8,
+                description: "Designed for posture perfection. Features 4D adjustable armrests, dynamic lumbar support, breathable Korean mesh, and smooth-gliding silent casters.",
+                images: [
+                    "https://images.unsplash.com/photo-1580481077494-e3299ac25e94?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1505797162846-2977b82837f4?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Charcoal Black", "Slate Gray", "Pure White"],
+                sizes: ["Standard", "Executive XL"],
+                tags: ["bestseller", "trending"],
+                featured: false,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-005",
+                name: "Zephyr Mechanical RGB Gaming Keyboard",
+                category: "gaming",
+                brand: "ZephyrGear",
+                price: 159.00,
+                oldPrice: 189.00,
+                discount: 15,
+                rating: 4.8,
+                reviews: 430,
+                stock: 31,
+                description: "Hot-swappable linear switches, per-key customizable RGB lighting, sound-dampening acoustic foam, and aircraft-grade aluminum top plate for the ultimate tactile typing and gaming experience.",
+                images: [
+                    "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Phantom Black", "Lunar Silver"],
+                sizes: ["TKL (87-Key)", "Full Size (104-Key)"],
+                tags: ["featured", "trending"],
+                featured: true,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-006",
+                name: "Lumina Studio 4K Ultra-Wide Monitor",
+                category: "computers",
+                brand: "LuminaDisplay",
+                price: 649.00,
+                oldPrice: 749.00,
+                discount: 13,
+                rating: 4.9,
+                reviews: 215,
+                stock: 12,
+                description: "Stunning 34-inch IPS curved display with 99% sRGB color accuracy, USB-C 90W Power Delivery, and built-in stereo speakers. Perfect for creative professionals and multitasking power users.",
+                images: [
+                    "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1547082299-de196ea013d6?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Space Gray"],
+                sizes: ["34\" UltraWide"],
+                tags: ["featured", "bestseller"],
+                featured: true,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-007",
+                name: "Urban Nomad Waterproof Canvas Backpack",
+                category: "fashion",
+                brand: "NomadCraft",
+                price: 89.00,
+                oldPrice: 120.00,
+                discount: 25,
+                rating: 4.7,
+                reviews: 560,
+                stock: 40,
+                description: "Crafted from rugged weather-resistant waxed canvas and full-grain leather accents. Features a dedicated 16-inch laptop compartment, hidden anti-theft pocket, and USB charging pass-through.",
+                images: [
+                    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1545677330-6d4ec43f4cb6?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Olive Green", "Midnight Black", "Tan Brown"],
+                sizes: ["25L Capacity"],
+                tags: ["bestseller", "trending"],
+                featured: false,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-008",
+                name: "AuraGlow Smart Ambient Desk Lamp",
+                category: "home",
+                brand: "AuraHome",
+                price: 69.00,
+                oldPrice: 89.00,
+                discount: 22,
+                rating: 4.5,
+                reviews: 180,
+                stock: 22,
+                description: "Touch-sensitive color temperature adjustment, wireless phone charging base on the stand, and voice assistant integration. Elevate your workspace ambiance instantly.",
+                images: [
+                    "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Matte White", "Matte Black"],
+                sizes: ["Standard"],
+                tags: ["trending"],
+                featured: false,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-009",
+                name: "Velocity Air Carbon Running Sneakers",
+                category: "sports",
+                brand: "Velocity",
+                price: 140.00,
+                oldPrice: 160.00,
+                discount: 12,
+                rating: 4.8,
+                reviews: 730,
+                stock: 35,
+                description: "Engineered with a carbon fiber plate and nitrogen-infused foam midsole for explosive energy return. Ultra-breathable engineered knit upper keeps your feet cool through long miles.",
+                images: [
+                    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Coral Red", "Navy Blue", "Pure White"],
+                sizes: ["US 8", "US 9", "US 10", "US 11", "US 12"],
+                tags: ["featured", "bestseller"],
+                featured: true,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-010",
+                name: "Solace Ionic Facial Skincare Wand",
+                category: "beauty",
+                brand: "SolaceBeauty",
+                price: 119.00,
+                oldPrice: 150.00,
+                discount: 20,
+                rating: 4.7,
+                reviews: 290,
+                stock: 18,
+                description: "4-in-1 skincare powerhouse featuring red light therapy, therapeutic warmth, facial massage, and galvanic ion transport to boost serum absorption and reduce puffiness.",
+                images: [
+                    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1512290900672-8a98404a3f54?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Rose Gold", "Pearl White"],
+                sizes: ["Standard"],
+                tags: ["trending"],
+                featured: false,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-011",
+                name: "Quantum Precision Wireless Mouse",
+                category: "computers",
+                brand: "NovaTech",
+                price: 79.00,
+                oldPrice: 99.00,
+                discount: 20,
+                rating: 4.8,
+                reviews: 410,
+                stock: 50,
+                description: "Ergonomic sculpted shape with magnetic scroll wheel, 8000 DPI optical sensor, and dual connectivity (Bluetooth & 2.4GHz USB receiver). 70 days battery on a single charge.",
+                images: [
+                    "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Graphite", "Silver"],
+                sizes: ["Standard"],
+                tags: ["bestseller"],
+                featured: false,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-012",
+                name: "Nordic Ceramic Pour-Over Coffee Maker",
+                category: "home",
+                brand: "AuraHome",
+                price: 45.00,
+                oldPrice: 60.00,
+                discount: 25,
+                rating: 4.6,
+                reviews: 310,
+                stock: 45,
+                description: "Handcrafted matte ceramic brewer with wooden collar and borosilicate glass carafe. Designed for the ultimate clean extraction pour-over coffee experience.",
+                images: [
+                    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Off-White", "Slate Black"],
+                sizes: ["600ml", "800ml"],
+                tags: ["trending"],
+                featured: false,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-013",
+                name: "Titanium Chronograph Minimalist Watch",
+                category: "fashion",
+                brand: "Chronos",
+                price: 220.00,
+                oldPrice: 280.00,
+                discount: 21,
+                rating: 4.9,
+                reviews: 380,
+                stock: 15,
+                description: "Sapphire crystal scratch-resistant glass, Japanese quartz movement, 50m water resistance, and lightweight hypoallergenic titanium mesh strap.",
+                images: [
+                    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Matte Black", "Silver Steel", "Rose Gold"],
+                sizes: ["40mm Case"],
+                tags: ["featured", "bestseller"],
+                featured: true,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-014",
+                name: "HyperDrive 2TB NVMe M.2 External SSD",
+                category: "computers",
+                brand: "NovaTech",
+                price: 189.00,
+                oldPrice: 230.00,
+                discount: 17,
+                rating: 4.9,
+                reviews: 620,
+                stock: 30,
+                description: "Lightning-fast read and write speeds up to 2000 MB/s. Compact pocket-sized aluminum enclosure with shock-resistant silicone bumper and USB-C cable included.",
+                images: [
+                    "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1531492746406-444874c42468?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Space Gray"],
+                sizes: ["1TB", "2TB", "4TB"],
+                tags: ["bestseller", "trending"],
+                featured: false,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-015",
+                name: "CloudSoft Organic Cotton Hoodie",
+                category: "fashion",
+                brand: "NomadCraft",
+                price: 75.00,
+                oldPrice: 95.00,
+                discount: 21,
+                rating: 4.7,
+                reviews: 490,
+                stock: 55,
+                description: "100% GOTS certified organic combed cotton. Heavyweight 450gsm fleece interior for supreme warmth and tailored relaxed fit.",
+                images: [
+                    "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Sage Green", "Heather Gray", "Navy", "Jet Black"],
+                sizes: ["S", "M", "L", "XL"],
+                tags: ["bestseller"],
+                featured: false,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-016",
+                name: "Apex Gaming Controller Pro Wireless",
+                category: "gaming",
+                brand: "ZephyrGear",
+                price: 89.00,
+                oldPrice: 110.00,
+                discount: 19,
+                rating: 4.8,
+                reviews: 340,
+                stock: 28,
+                description: "Hall effect magnetic thumbsticks, mechanical clicky triggers, 4 programmable rear paddles, and multi-platform compatibility (PC, Console, Mobile).",
+                images: [
+                    "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Carbon Black", "Electric Blue", "Snow White"],
+                sizes: ["Standard"],
+                tags: ["trending", "featured"],
+                featured: true,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-017",
+                name: "Botanical Vitamin C Glow Serum",
+                category: "beauty",
+                brand: "SolaceBeauty",
+                price: 52.00,
+                oldPrice: 65.00,
+                discount: 20,
+                rating: 4.8,
+                reviews: 510,
+                stock: 40,
+                description: "Potent 20% Vitamin C antioxidant serum infused with hyaluronic acid and Kakadu plum. Brightens skin tone, fades dark spots, and promotes collagen synthesis.",
+                images: [
+                    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1608248597359-f55c5df38965?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Standard"],
+                sizes: ["30ml / 1 fl oz"],
+                tags: ["bestseller"],
+                featured: false,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-018",
+                name: "AuraFit Smart Fitness Watch & Tracker",
+                category: "sports",
+                brand: "Velocity",
+                price: 199.00,
+                oldPrice: 249.00,
+                discount: 20,
+                rating: 4.6,
+                reviews: 275,
+                stock: 20,
+                description: "Continuous heart rate monitoring, built-in GPS, blood oxygen SpO2 tracking, 50+ sports modes, and 7-day battery life in a sleek aerospace aluminum case.",
+                images: [
+                    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Matte Black", "Rose Gold", "Silver"],
+                sizes: ["44mm"],
+                tags: ["trending"],
+                featured: false,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-019",
+                name: "UltraSound Spatial Bluetooth Speaker",
+                category: "electronics",
+                brand: "AuraAudio",
+                price: 179.00,
+                oldPrice: 219.00,
+                discount: 18,
+                rating: 4.9,
+                reviews: 440,
+                stock: 16,
+                description: "360-degree immersive soundstage with deep bass enhancement. IP67 waterproof and dustproof rating, rugged fabric exterior, and 24-hour continuous playback.",
+                images: [
+                    "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Graphite Black", "Forest Green", "Crimson Red"],
+                sizes: ["Standard"],
+                tags: ["featured", "bestseller"],
+                featured: true,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-020",
+                name: "Ergonomic Vertical Wireless Mouse",
+                category: "computers",
+                brand: "NovaTech",
+                price: 59.00,
+                oldPrice: 75.00,
+                discount: 21,
+                rating: 4.5,
+                reviews: 210,
+                stock: 35,
+                description: "Designed to reduce forearm strain with a natural 57-degree handshake grip. Adjustable DPI sensitivity and quiet click buttons for distraction-free work.",
+                images: [
+                    "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1586816879360-004f5b0c51e3?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Matte Black"],
+                sizes: ["Right Hand (Standard)"],
+                tags: [],
+                featured: false,
+                trending: false,
+                bestseller: false
+            },
+            {
+                id: "aur-021",
+                name: "Titanium Stainless Steel Water Bottle",
+                category: "sports",
+                brand: "Velocity",
+                price: 38.00,
+                oldPrice: 48.00,
+                discount: 20,
+                rating: 4.8,
+                reviews: 580,
+                stock: 60,
+                description: "Double-wall vacuum insulation keeps drinks ice cold for 24 hours or piping hot for 12 hours. Sweat-proof powder coat finish and leakproof sip lid.",
+                images: [
+                    "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Navy", "Sage", "Coral", "Matte Steel"],
+                sizes: ["24 oz", "32 oz"],
+                tags: ["bestseller"],
+                featured: false,
+                trending: false,
+                bestseller: true
+            },
+            {
+                id: "aur-022",
+                name: "Minimalist Linen Duvet Cover Set",
+                category: "home",
+                brand: "AuraHome",
+                price: 160.00,
+                oldPrice: 200.00,
+                discount: 20,
+                rating: 4.7,
+                reviews: 195,
+                stock: 14,
+                description: "Woven from 100% French flax linen. Breathable, temperature-regulating, and pre-washed for incredible softness that gets better with every wash.",
+                images: [
+                    "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Natural Flax", "Charcoal", "Oatmeal", "Pure White"],
+                sizes: ["Queen", "King"],
+                tags: ["trending"],
+                featured: false,
+                trending: true,
+                bestseller: false
+            },
+            {
+                id: "aur-023",
+                name: "Apex Ultra-Slim Power Bank 25000mAh",
+                category: "electronics",
+                brand: "ApexMobile",
+                price: 79.00,
+                oldPrice: 99.00,
+                discount: 20,
+                rating: 4.8,
+                reviews: 460,
+                stock: 40,
+                description: "100W Power Delivery fast charging capable of juicing up laptops, tablets, and phones simultaneously. Airline approved with digital percentage display.",
+                images: [
+                    "https://images.unsplash.com/photo-1609592424155-27aa3926514e?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Space Gray", "Silver"],
+                sizes: ["25,000mAh"],
+                tags: ["bestseller", "trending"],
+                featured: false,
+                trending: true,
+                bestseller: true
+            },
+            {
+                id: "aur-024",
+                name: "Classic Tailored Wool Blend Overcoat",
+                category: "fashion",
+                brand: "NomadCraft",
+                price: 280.00,
+                oldPrice: 350.00,
+                discount: 20,
+                rating: 4.9,
+                reviews: 140,
+                stock: 10,
+                description: "Impeccably tailored from premium Italian wool blend fabric. Features notched lapels, deep interior pockets, and satin lining for effortless sophistication.",
+                images: [
+                    "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Camel", "Charcoal", "Navy"],
+                sizes: ["38R", "40R", "42R", "44R"],
+                tags: ["featured"],
+                featured: true,
+                trending: false,
+                bestseller: false
+            },
+            {
+                id: "aur-025",
+                name: "Professional Chef's Japanese Steel Knife",
+                category: "home",
+                brand: "AuraHome",
+                price: 129.00,
+                oldPrice: 160.00,
+                discount: 19,
+                rating: 4.9,
+                reviews: 310,
+                stock: 25,
+                description: "67-layer Damascus VG-10 super steel blade with stunning wave pattern and ergonomically balanced pakkawood handle. Razor sharp edge retention.",
+                images: [
+                    "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1589365252845-a1312521d916?auto=format&fit=crop&w=800&q=80"
+                ],
+                colors: ["Damascus Steel"],
+                sizes: ["8-inch Chef Knife"],
+                tags: ["bestseller"],
+                featured: false,
+                trending: false,
+                bestseller: true
+            }
+        ];
+
+        /* ==========================================
+           2. APPLICATION STATE & LOCALSTORAGE
+           ========================================== */
+        let state = {
+            cart: JSON.parse(localStorage.getItem('aura_cart')) || [],
+            wishlist: JSON.parse(localStorage.getItem('aura_wishlist')) || [],
+            currentUser: JSON.parse(localStorage.getItem('aura_user')) || null,
+            orders: JSON.parse(localStorage.getItem('aura_orders')) || [],
+            currentRoute: 'home',
+            routeParams: {},
+            filters: {
+                category: 'all',
+                search: '',
+                brand: 'all',
+                priceMax: 2000,
+                rating: 0,
+                sort: 'recommended'
+            },
+            userLocation: localStorage.getItem('aura_location') || 'New York, NY 10001'
+        };
+
+        function saveState() {
+            localStorage.setItem('aura_cart', JSON.stringify(state.cart));
+            localStorage.setItem('aura_wishlist', JSON.stringify(state.wishlist));
+            localStorage.setItem('aura_user', JSON.stringify(state.currentUser));
+            localStorage.setItem('aura_orders', JSON.stringify(state.orders));
+            localStorage.setItem('aura_location', state.userLocation);
+            updateBadges();
+        }
+
+        function updateBadges() {
+            const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            const wishCount = state.wishlist.length;
+            
+            const cartBadge = document.getElementById('cart-badge');
+            const wishBadge = document.getElementById('wishlist-badge');
+            
+            if (cartBadge) {
+                cartBadge.innerText = cartCount;
+                cartBadge.style.transform = 'scale(1.2)';
+                setTimeout(() => cartBadge.style.transform = 'scale(1)', 200);
+            }
+            if (wishBadge) {
+                wishBadge.innerText = wishCount;
+                wishBadge.style.transform = 'scale(1.2)';
+                setTimeout(() => wishBadge.style.transform = 'scale(1)', 200);
+            }
+
+            // Update Header User info
+            const userStatus = document.getElementById('header-user-status');
+            const userName = document.getElementById('header-user-name');
+            const headerAvatar = document.getElementById('header-avatar');
+            
+            if (state.currentUser) {
+                if (userStatus) userStatus.innerText = 'Welcome back';
+                if (userName) userName.innerText = state.currentUser.name.split(' ')[0];
+                if (headerAvatar) headerAvatar.innerHTML = `<span class="font-bold text-primary">${state.currentUser.name.charAt(0).toUpperCase()}</span>`;
+            } else {
+                if (userStatus) userStatus.innerText = 'Hello, Sign in';
+                if (userName) userName.innerText = 'My Account';
+                if (headerAvatar) headerAvatar.innerHTML = `<i class="fa-solid fa-user"></i>`;
+            }
+        }
+
+        /* ==========================================
+           3. TOAST NOTIFICATION SYSTEM
+           ========================================== */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let icon = 'fa-circle-check text-success';
+            let bg = 'bg-cardWhite border-borderCol text-darkSlate';
+            if (type === 'error') {
+                icon = 'fa-circle-exclamation text-accent';
+            } else if (type === 'wishlist') {
+                icon = 'fa-solid fa-heart text-accent';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-4 rounded-2xl shadow-floating border ${bg} transform translate-y-4 opacity-0 transition-all duration-300 max-w-sm`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} text-lg"></i>
+                <div class="flex-1 text-sm font-semibold">${message}</div>
+                <button onclick="this.parentElement.remove()" class="text-secondaryText hover:text-darkSlate"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        /* ==========================================
+           4. ROUTING ENGINE
+           ========================================== */
+        const router = {
+            navigate: function(route, params = {}) {
+                state.currentRoute = route;
+                state.routeParams = params;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.render();
+            },
+            render: function() {
+                const appView = document.getElementById('app-view');
+                if (!appView) return;
+
+                // Close mobile menu if open
+                closeMobileMenu();
+
+                switch(state.currentRoute) {
+                    case 'home':
+                        appView.innerHTML = renderHomePage();
+                        initHomeInteractions();
+                        break;
+                    case 'products':
+                        appView.innerHTML = renderProductsPage();
+                        initProductsInteractions();
+                        break;
+                    case 'product-detail':
+                        appView.innerHTML = renderProductDetailPage(state.routeParams.id);
+                        initProductDetailInteractions();
+                        break;
+                    case 'categories':
+                        appView.innerHTML = renderCategoriesPage();
+                        break;
+                    case 'cart':
+                        appView.innerHTML = renderCartPage();
+                        break;
+                    case 'wishlist':
+                        appView.innerHTML = renderWishlistPage();
+                        break;
+                    case 'checkout':
+                        appView.innerHTML = renderCheckoutPage();
+                        initCheckoutInteractions();
+                        break;
+                    case 'order-success':
+                        appView.innerHTML = renderOrderSuccessPage(state.routeParams.order);
+                        break;
+                    case 'login':
+                        appView.innerHTML = renderLoginPage();
+                        break;
+                    case 'register':
+                        appView.innerHTML = renderRegisterPage();
+                        break;
+                    case 'account':
+                        if (!state.currentUser) {
+                            router.navigate('login');
+                            showToast('Please sign in to access your account dashboard.', 'error');
+                            return;
+                        }
+                        appView.innerHTML = renderAccountPage();
+                        break;
+                    case 'about':
+                        appView.innerHTML = renderAboutPage();
+                        break;
+                    case 'contact':
+                        appView.innerHTML = renderContactPage();
+                        break;
+                    default:
+                        appView.innerHTML = renderHomePage();
+                }
+                updateBadges();
+            }
+        };
+
+        /* ==========================================
+           5. PAGE TEMPLATES & RENDERERS
+           ========================================== */
+
+        // --- HOMEPAGE ---
+        function renderHomePage() {
+            const featuredProducts = PRODUCTS_DATA.filter(p => p.featured).slice(0, 8);
+            const trendingProducts = PRODUCTS_DATA.filter(p => p.trending).slice(0, 8);
+
+            return `
+                <section class="relative bg-gradient-to-br from-primary via-[#1e3a8a] to-primary text-white py-20 lg:py-28 overflow-hidden">
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#3B82F6_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <div class="lg:col-span-7 flex flex-col gap-6 text-left">
+                            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs font-semibold text-secondary w-fit border border-white/10 shadow-subtle">
+                                <i class="fa-solid fa-sparkles text-accent"></i> Experience Calm & Modern Commerce
+                            </div>
+                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+                                Everything you need. <br><span class="text-secondary">In one place.</span>
+                            </h1>
+                            <p class="text-white/80 text-base sm:text-lg max-w-xl leading-relaxed">
+                                Discover products you'll love, delivered simply. Uncompromising quality, calm aesthetics, and lightning-fast fulfillment.
+                            </p>
+                            <div class="flex flex-wrap items-center gap-4 pt-2">
+                                <button onclick="router.navigate('products')" class="bg-secondary hover:bg-secondary/90 text-white font-bold px-8 py-4 rounded-2xl shadow-elevated transition-all transform hover:-translate-y-0.5 flex items-center gap-3">
+                                    <span>Shop Now</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                                <button onclick="router.navigate('categories')" class="bg-white/10 hover:bg-white/20 text-white font-bold px-8 py-4 rounded-2xl backdrop-blur-md transition-all border border-white/20 flex items-center gap-3">
+                                    <span>Explore Categories</span>
+                                </button>
+                            </div>
+                            <!-- Trust Badges -->
+                            <div class="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 mt-4 text-left">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-secondary"><i class="fa-solid fa-truck-fast text-lg"></i></div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">Free Express</h4>
+                                        <p class="text-[10px] text-white/60">On orders over $50</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-secondary"><i class="fa-solid fa-shield-halved text-lg"></i></div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">Secure Pay</h4>
+                                        <p class="text-[10px] text-white/60">100% Protected</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-secondary"><i class="fa-solid fa-rotate-left text-lg"></i></div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">Easy Returns</h4>
+                                        <p class="text-[10px] text-white/60">30-day guarantee</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5 relative flex justify-center">
+                            <div class="relative w-full max-w-md aspect-square rounded-3xl overflow-hidden shadow-floating border-4 border-white/10 group">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80" alt="Featured Hero Product" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent flex flex-col justify-end p-6">
+                                    <span class="text-xs font-bold text-secondary uppercase tracking-widest">Featured Collection</span>
+                                    <h3 class="text-xl font-extrabold text-white">AuraPulse ANC Headphones</h3>
+                                    <p class="text-xs text-white/80 mt-1">Immersive sound with 40-hour battery life.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div class="flex items-end justify-between mb-8">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary">Browse Collections</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-darkSlate tracking-tight">Shop by Category</h2>
+                        </div>
+                        <button onclick="router.navigate('categories')" class="text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
+                            View All Categories <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        ${renderCategoryCard('electronics', 'Electronics', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=400&q=80', '6 Products')}
+                        ${renderCategoryCard('computers', 'Computers', 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80', '5 Products')}
+                        ${renderCategoryCard('phones', 'Smartphones', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80', '3 Products')}
+                        ${renderCategoryCard('fashion', 'Modern Fashion', 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=400&q=80', '5 Products')}
+                        ${renderCategoryCard('home', 'Home & Living', 'https://images.unsplash.com/photo-1580481077494-e3299ac25e94?auto=format&fit=crop&w=400&q=80', '5 Products')}
+                        ${renderCategoryCard('gaming', 'Gaming Rigs', 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=400&q=80', '3 Products')}
+                    </div>
+                </section>
+
+                <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="flex items-end justify-between mb-8">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary">Curated Selection</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-darkSlate tracking-tight">Featured Products</h2>
+                        </div>
+                        <button onclick="router.navigate('products')" class="text-xs font-bold text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
+                            Explore All Products <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        ${featuredProducts.map(p => renderProductCard(p)).join('')}
+                    </div>
+                </section>
+
+                <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div class="bg-gradient-to-r from-primary to-[#1e3a8a] rounded-3xl p-8 sm:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-elevated relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="flex flex-col gap-4 max-w-xl z-10">
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary bg-white/10 px-3 py-1 rounded-full w-fit">Limited Time Offer</span>
+                            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Get 10% Off Your First Order</h2>
+                            <p class="text-white/80 text-sm leading-relaxed">
+                                Join over 50,000 satisfied shoppers who trust Aura Market for calm, premium online shopping. Use coupon code <strong class="text-white">AURA2026</strong> at checkout.
+                            </p>
+                            <div>
+                                <button onclick="router.navigate('products')" class="bg-secondary hover:bg-secondary/90 text-white font-bold px-8 py-3.5 rounded-xl shadow-subtle transition-all">
+                                    Shop Collection Now
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto flex justify-center z-10">
+                            <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center flex flex-col gap-2 max-w-xs">
+                                <span class="text-xs text-white/70 uppercase font-semibold">Promo Code</span>
+                                <span class="text-2xl font-black tracking-wider text-secondary">AURA2026</span>
+                                <span class="text-[10px] text-white/60">Applies to all electronics & home items</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12">
+                    <div class="flex items-end justify-between mb-8">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary">What's Hot</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-darkSlate tracking-tight">Trending Right Now</h2>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        ${trendingProducts.map(p => renderProductCard(p)).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderCategoryCard(slug, name, image, count) {
+            return `
+                <div onclick="filterByCategory('${slug}')" class="group bg-cardWhite rounded-2xl p-4 border border-borderCol hover:border-secondary shadow-subtle hover:shadow-elevated transition-all duration-300 cursor-pointer flex flex-col items-center text-center gap-3">
+                    <div class="w-20 h-20 rounded-2xl overflow-hidden bg-bgOffWhite relative">
+                        <img src="${image}" alt="${name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-darkSlate group-hover:text-secondary transition-colors">${name}</h4>
+                        <span class="text-[10px] text-secondaryText">${count}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProductCard(p) {
+            const isWishlisted = state.wishlist.some(item => item.id === p.id);
+            return `
+                <div class="bg-cardWhite rounded-2xl border border-borderCol hover:border-secondary/40 shadow-subtle hover:shadow-elevated transition-all duration-300 flex flex-col overflow-hidden group relative">
+                    <!-- Discount Badge -->
+                    ${p.discount > 0 ? `<div class="absolute top-3 left-3 z-10 bg-accent text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-subtle">${p.discount}% OFF</div>` : ''}
+                    
+                    <!-- Wishlist Button -->
+                    <button onclick="toggleWishlist('${p.id}')" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-cardWhite/90 backdrop-blur-md shadow-subtle flex items-center justify-center text-darkSlate hover:text-accent transition-colors">
+                        <i class="${isWishlisted ? 'fa-solid text-accent' : 'fa-regular'} fa-heart text-base"></i>
+                    </button>
+
+                    <!-- Image Container -->
+                    <div onclick="router.navigate('product-detail', {id: '${p.id}'})" class="relative aspect-square overflow-hidden bg-bgOffWhite cursor-pointer">
+                        <img src="${p.images[0]}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+                        <!-- Quick View Button overlay -->
+                        <div class="absolute inset-x-0 bottom-3 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="event.stopPropagation(); openQuickView('${p.id}')" class="bg-cardWhite/90 backdrop-blur-md text-darkSlate text-xs font-bold px-4 py-2 rounded-xl shadow-subtle hover:bg-primary hover:text-white transition-colors">
+                                Quick View
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-4 flex flex-col flex-1 justify-between gap-3">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[10px] uppercase font-bold text-secondary tracking-wider">${p.brand}</span>
+                            <h3 onclick="router.navigate('product-detail', {id: '${p.id}'})" class="text-sm font-bold text-darkSlate hover:text-secondary transition-colors cursor-pointer line-clamp-2">${p.name}</h3>
+                        </div>
+
+                        <!-- Rating & Reviews -->
+                        <div class="flex items-center gap-1.5 text-xs text-amber-500">
+                            <div class="flex items-center"><i class="fa-solid fa-star"></i></div>
+                            <span class="font-bold text-darkSlate text-xs">${p.rating}</span>
+                            <span class="text-secondaryText text-[10px]">(${p.reviews})</span>
+                        </div>
+
+                        <!-- Price & Add to Cart -->
+                        <div class="flex items-center justify-between pt-2 border-t border-borderCol">
+                            <div class="flex flex-col">
+                                <span class="text-base font-extrabold text-primary">$${p.price.toFixed(2)}</span>
+                                ${p.oldPrice ? `<span class="text-[10px] text-secondaryText line-through">$${p.oldPrice.toFixed(2)}</span>` : ''}
+                            </div>
+                            <button onclick="addToCart('${p.id}')" class="bg-primary hover:bg-secondary text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-subtle transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i>
+                                <span>Add</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- PRODUCTS PAGE ---
+        function renderProductsPage() {
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <!-- Breadcrumb -->
+                    <div class="flex items-center gap-2 text-xs text-secondaryText mb-6">
+                        <a href="#home" onclick="router.navigate('home')" class="hover:text-primary">Home</a>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <span class="text-darkSlate font-bold">All Products</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <!-- Sidebar Filters -->
+                        <div class="lg:col-span-1 flex flex-col gap-6 bg-cardWhite p-6 rounded-2xl border border-borderCol h-fit shadow-subtle">
+                            <div class="flex items-center justify-between pb-4 border-b border-borderCol">
+                                <h3 class="font-extrabold text-darkSlate text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-filter text-secondary"></i> Filters
+                                </h3>
+                                <button onclick="resetFilters()" class="text-xs font-semibold text-secondary hover:underline">Reset All</button>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div class="flex flex-col gap-3">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-secondaryText">Category</h4>
+                                <div class="flex flex-col gap-2 text-sm">
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="all" checked onchange="applyFilters()" class="text-secondary focus:ring-secondary"> All Categories</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="electronics" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Electronics</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="computers" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Computers & Tech</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="phones" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Smartphones</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="fashion" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Fashion</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="home" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Home & Kitchen</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="beauty" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Beauty & Care</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="sports" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Sports & Fitness</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-cat" value="gaming" onchange="applyFilters()" class="text-secondary focus:ring-secondary"> Gaming Rigs</label>
+                                </div>
+                            </div>
+
+                            <!-- Brand Filter -->
+                            <div class="flex flex-col gap-3 pt-4 border-t border-borderCol">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-secondaryText">Brand</h4>
+                                <select id="filter-brand" onchange="applyFilters()" class="bg-bgOffWhite border border-borderCol rounded-xl p-2.5 text-sm font-semibold text-darkSlate focus:outline-none">
+                                    <option value="all">All Brands</option>
+                                    <option value="NovaTech">NovaTech</option>
+                                    <option value="AuraAudio">AuraAudio</option>
+                                    <option value="ApexMobile">ApexMobile</option>
+                                    <option value="ErgoComfort">ErgoComfort</option>
+                                    <option value="ZephyrGear">ZephyrGear</option>
+                                    <option value="LuminaDisplay">LuminaDisplay</option>
+                                    <option value="NomadCraft">NomadCraft</option>
+                                    <option value="AuraHome">AuraHome</option>
+                                    <option value="Velocity">Velocity</option>
+                                    <option value="SolaceBeauty">SolaceBeauty</option>
+                                    <option value="Chronos">Chronos</option>
+                                </select>
+                            </div>
+
+                            <!-- Price Range -->
+                            <div class="flex flex-col gap-3 pt-4 border-t border-borderCol">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-secondaryText">Max Price</h4>
+                                    <span id="price-range-label" class="text-xs font-bold text-primary">$2000</span>
+                                </div>
+                                <input type="range" id="filter-price" min="50" max="2000" step="50" value="2000" oninput="document.getElementById('price-range-label').innerText = '$' + this.value; applyFilters()" class="w-full accent-secondary cursor-pointer">
+                            </div>
+
+                            <!-- Rating Filter -->
+                            <div class="flex flex-col gap-3 pt-4 border-t border-borderCol">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-secondaryText">Minimum Rating</h4>
+                                <div class="flex flex-col gap-2 text-sm">
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-rating" value="0" checked onchange="applyFilters()"> All Ratings</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-rating" value="4.5" onchange="applyFilters()"> 4.5 & Above ★★★★½</label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer"><input type="radio" name="filter-rating" value="4.0" onchange="applyFilters()"> 4.0 & Above ★★★★</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Grid & Sorting -->
+                        <div class="lg:col-span-3 flex flex-col gap-6">
+                            <!-- Header bar with count & sorting -->
+                            <div class="bg-cardWhite p-4 rounded-2xl border border-borderCol flex flex-col sm:flex-row items-center justify-between gap-4 shadow-subtle">
+                                <div class="text-sm font-semibold text-secondaryText">
+                                    Showing <span id="product-count" class="font-extrabold text-darkSlate">0</span> products
+                                </div>
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <span class="text-xs font-bold text-secondaryText whitespace-nowrap">Sort by:</span>
+                                    <select id="sort-select" onchange="applyFilters()" class="bg-bgOffWhite border border-borderCol rounded-xl px-3 py-2 text-xs font-bold text-darkSlate focus:outline-none flex-1 sm:flex-none">
+                                        <option value="recommended">Recommended</option>
+                                        <option value="newest">Newest Arrivals</option>
+                                        <option value="price-low">Price: Low to High</option>
+                                        <option value="price-high">Price: High to Low</option>
+                                        <option value="rating">Highest Rated</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Grid -->
+                            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- PRODUCT DETAIL PAGE ---
+        function renderProductDetailPage(productId) {
+            const product = PRODUCTS_DATA.find(p => p.id === productId) || PRODUCTS_DATA[0];
+            const related = PRODUCTS_DATA.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+            const isWishlisted = state.wishlist.some(item => item.id === product.id);
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <!-- Breadcrumb -->
+                    <div class="flex items-center gap-2 text-xs text-secondaryText mb-8">
+                        <a href="#home" onclick="router.navigate('home')" class="hover:text-primary">Home</a>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <a href="#products" onclick="router.navigate('products')" class="hover:text-primary">Products</a>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <span class="text-darkSlate font-bold truncate max-w-xs">${product.name}</span>
+                    </div>
+
+                    <!-- Main Detail Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 bg-cardWhite p-6 sm:p-10 rounded-3xl border border-borderCol shadow-subtle">
+                        <!-- Gallery -->
+                        <div class="lg:col-span-6 flex flex-col gap-4">
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-bgOffWhite border border-borderCol relative group">
+                                <img id="main-product-img" src="${product.images[0]}" alt="${product.name}" class="w-full h-full object-cover">
+                                ${product.discount > 0 ? `<div class="absolute top-4 left-4 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full shadow-subtle">${product.discount}% OFF</div>` : ''}
+                            </div>
+                            <div class="flex gap-4 overflow-x-auto pb-2">
+                                ${product.images.map((img, i) => `
+                                    <button onclick="document.getElementById('main-product-img').src='${img}'" class="w-20 h-20 rounded-xl overflow-hidden border-2 border-borderCol hover:border-secondary transition-all focus:outline-none flex-shrink-0 bg-bgOffWhite">
+                                        <img src="${img}" alt="Thumbnail ${i}" class="w-full h-full object-cover">
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Info & Actions -->
+                        <div class="lg:col-span-6 flex flex-col gap-6">
+                            <div class="flex flex-col gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-widest text-secondary">${product.brand}</span>
+                                <h1 class="text-2xl sm:text-3xl font-extrabold text-darkSlate">${product.name}</h1>
+                                <div class="flex items-center gap-3 pt-1">
+                                    <div class="flex items-center gap-1 text-amber-500 text-sm">
+                                        <i class="fa-solid fa-star"></i>
+                                        <span class="font-bold text-darkSlate">${product.rating}</span>
+                                    </div>
+                                    <span class="text-borderCol">|</span>
+                                    <span class="text-xs text-secondaryText">${product.reviews} Verified Reviews</span>
+                                    <span class="text-borderCol">|</span>
+                                    <span class="text-xs font-bold text-success flex items-center gap-1"><i class="fa-solid fa-check"></i> In Stock (${product.stock} units)</span>
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="flex items-baseline gap-4 py-4 border-y border-borderCol">
+                                <span class="text-3xl font-black text-primary">$${product.price.toFixed(2)}</span>
+                                ${product.oldPrice ? `<span class="text-lg text-secondaryText line-through">$${product.oldPrice.toFixed(2)}</span>` : ''}
+                                ${product.discount > 0 ? `<span class="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg">Save $${(product.oldPrice - product.price).toFixed(2)}</span>` : ''}
+                            </div>
+
+                            <!-- Description -->
+                            <p class="text-sm text-secondaryText leading-relaxed">
+                                ${product.description}
+                            </p>
+
+                            <!-- Color Options -->
+                            ${product.colors && product.colors.length > 0 ? `
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-darkSlate">Color: <strong id="selected-color-label" class="text-secondary">${product.colors[0]}</strong></span>
+                                    <div class="flex items-center gap-3">
+                                        ${product.colors.map((c, i) => `
+                                            <button onclick="selectColor('${c}')" class="color-btn px-4 py-2 rounded-xl text-xs font-bold border ${i === 0 ? 'border-secondary bg-secondary/10 text-secondary' : 'border-borderCol text-secondaryText'} transition-all">${c}</button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Size Options -->
+                            ${product.sizes && product.sizes.length > 0 ? `
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-darkSlate">Size / Edition: <strong id="selected-size-label" class="text-secondary">${product.sizes[0]}</strong></span>
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        ${product.sizes.map((s, i) => `
+                                            <button onclick="selectSize('${s}')" class="size-btn px-4 py-2 rounded-xl text-xs font-bold border ${i === 0 ? 'border-secondary bg-secondary/10 text-secondary' : 'border-borderCol text-secondaryText'} transition-all">${s}</button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Quantity & Buttons -->
+                            <div class="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-borderCol">
+                                <div class="flex items-center border border-borderCol rounded-2xl overflow-hidden bg-bgOffWhite w-full sm:w-auto justify-between">
+                                    <button onclick="decrementDetailQty()" class="px-4 py-3 text-secondaryText hover:text-darkSlate transition-colors"><i class="fa-solid fa-minus"></i></button>
+                                    <span id="detail-qty" class="px-4 text-sm font-bold text-darkSlate">1</span>
+                                    <button onclick="incrementDetailQty()" class="px-4 py-3 text-secondaryText hover:text-darkSlate transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                                <button onclick="addDetailToCart('${product.id}')" class="w-full sm:flex-1 bg-primary hover:bg-secondary text-white font-bold px-6 py-3.5 rounded-2xl shadow-subtle transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bag-shopping"></i>
+                                    <span>Add to Cart</span>
+                                </button>
+                                <button onclick="buyNow('${product.id}')" class="w-full sm:flex-1 bg-secondary hover:bg-primary text-white font-bold px-6 py-3.5 rounded-2xl shadow-subtle transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>Buy Now</span>
+                                </button>
+                            </div>
+
+                            <!-- Wishlist & Share -->
+                            <div class="flex items-center justify-between text-xs text-secondaryText pt-2">
+                                <button onclick="toggleWishlist('${product.id}')" class="flex items-center gap-2 hover:text-accent transition-colors font-semibold">
+                                    <i class="${isWishlisted ? 'fa-solid text-accent' : 'fa-regular'} fa-heart text-base"></i>
+                                    <span>${isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}</span>
+                                </button>
+                                <div class="flex items-center gap-2">
+                                    <span>Share:</span>
+                                    <a href="#" class="hover:text-primary"><i class="fa-brands fa-facebook"></i></a>
+                                    <a href="#" class="hover:text-primary"><i class="fa-brands fa-x-twitter"></i></a>
+                                    <a href="#" class="hover:text-primary"><i class="fa-brands fa-pinterest"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div class="mt-16 bg-cardWhite p-8 rounded-3xl border border-borderCol shadow-subtle">
+                        <div class="flex items-center justify-between pb-6 border-b border-borderCol mb-8">
+                            <div>
+                                <h3 class="text-xl font-extrabold text-darkSlate">Customer Reviews</h3>
+                                <p class="text-xs text-secondaryText mt-1">Based on ${product.reviews} verified purchases</p>
+                            </div>
+                            <button onclick="showToast('Review submission modal opened', 'success')" class="bg-bgOffWhite hover:bg-primary/5 text-primary text-xs font-bold px-5 py-2.5 rounded-xl border border-borderCol transition-colors">
+                                Write a Review
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-bgOffWhite p-6 rounded-2xl border border-borderCol flex flex-col gap-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">J</div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-darkSlate">Jonathan M.</h4>
+                                            <span class="text-[10px] text-success font-semibold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-secondaryText">2 days ago</span>
+                                </div>
+                                <div class="flex text-amber-500 text-xs">
+                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                </div>
+                                <p class="text-xs text-secondaryText leading-relaxed">
+                                    "Absolute masterpiece. Quality far exceeded my expectations and delivery was lightning fast. Aura Market never disappoints."
+                                </p>
+                            </div>
+                            <div class="bg-bgOffWhite p-6 rounded-2xl border border-borderCol flex flex-col gap-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-xs">S</div>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-darkSlate">Sophia R.</h4>
+                                            <span class="text-[10px] text-success font-semibold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-secondaryText">1 week ago</span>
+                                </div>
+                                <div class="flex text-amber-500 text-xs">
+                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                                </div>
+                                <p class="text-xs text-secondaryText leading-relaxed">
+                                    "Calm aesthetic, premium packaging, and works flawlessly. Customer service was also extremely responsive when I had a shipping question."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Products -->
+                    ${related.length > 0 ? `
+                        <div class="mt-16">
+                            <h3 class="text-xl font-extrabold text-darkSlate mb-8">Related Products</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                                ${related.map(p => renderProductCard(p)).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // --- CATEGORIES PAGE ---
+        function renderCategoriesPage() {
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <div class="flex items-center gap-2 text-xs text-secondaryText mb-6">
+                        <a href="#home" onclick="router.navigate('home')" class="hover:text-primary">Home</a>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <span class="text-darkSlate font-bold">Categories</span>
+                    </div>
+                    <div class="flex flex-col gap-2 mb-10">
+                        <h1 class="text-3xl font-extrabold text-darkSlate">Explore Categories</h1>
+                        <p class="text-sm text-secondaryText">Browse our curated marketplace categories designed for modern living.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${renderCategoryDetailedBox('electronics', 'Electronics & Audio', 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=600&q=80', 'Headphones, speakers, smart devices & high-end audio gear.', '6 Products')}
+                        ${renderCategoryDetailedBox('computers', 'Computers & Technology', 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80', 'Laptops, ultra-wide monitors, SSDs and precision peripherals.', '5 Products')}
+                        ${renderCategoryDetailedBox('phones', 'Smartphones & Wearables', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80', 'Flagship 5G phones, power banks and smart fitness watches.', '3 Products')}
+                        ${renderCategoryDetailedBox('fashion', 'Modern Fashion & Apparel', 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=600&q=80', 'Organic hoodies, tailored overcoats, backpacks and minimalist watches.', '5 Products')}
+                        ${renderCategoryDetailedBox('home', 'Home & Kitchen Living', 'https://images.unsplash.com/photo-1580481077494-e3299ac25e94?auto=format&fit=crop&w=600&q=80', 'Ergonomic chairs, pour-over coffee makers, linen bedding & smart lamps.', '5 Products')}
+                        ${renderCategoryDetailedBox('gaming', 'Gaming Rigs & Gear', 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80', 'Mechanical RGB keyboards, wireless controllers and gaming hardware.', '3 Products')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCategoryDetailedBox(slug, title, image, desc, count) {
+            return `
+                <div onclick="filterByCategory('${slug}')" class="group bg-cardWhite rounded-3xl p-6 border border-borderCol hover:border-secondary shadow-subtle hover:shadow-elevated transition-all duration-300 cursor-pointer flex flex-col gap-4">
+                    <div class="h-48 rounded-2xl overflow-hidden bg-bgOffWhite relative">
+                        <img src="${image}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-darkSlate group-hover:text-secondary transition-colors">${title}</h3>
+                            <span class="text-xs font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-lg">${count}</span>
+                        </div>
+                        <p class="text-xs text-secondaryText leading-relaxed">${desc}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CART PAGE ---
+        function renderCartPage() {
+            if (state.cart.length === 0) {
+                return `
+                    <div class="max-w-4xl mx-auto px-4 py-20 text-center flex flex-col items-center gap-6">
+                        <div class="w-24 h-24 rounded-full bg-primary/5 text-primary flex items-center justify-center text-4xl shadow-subtle">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <h2 class="text-2xl font-extrabold text-darkSlate">Your cart is waiting for something good.</h2>
+                            <p class="text-sm text-secondaryText max-w-md mx-auto">Explore our marketplace and discover calm, premium products delivered straight to your door.</p>
+                        </div>
+                        <button onclick="router.navigate('products')" class="bg-primary hover:bg-secondary text-white font-bold px-8 py-3.5 rounded-2xl shadow-subtle transition-all">
+                            Start Shopping
+                        </button>
+                    </div>
+                `;
+            }
+
+            const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = subtotal > 50 ? 0 : 9.99;
+            const total = subtotal + shipping;
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <h1 class="text-3xl font-extrabold text-darkSlate mb-8">Shopping Cart (${state.cart.reduce((s, i) => s + i.quantity, 0)} items)</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Items List -->
+                        <div class="lg:col-span-8 flex flex-col gap-4">
+                            ${state.cart.map(item => `
+                                <div class="bg-cardWhite p-4 sm:p-6 rounded-2xl border border-borderCol shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                                        <div class="w-20 h-20 rounded-xl bg-bgOffWhite overflow-hidden flex-shrink-0">
+                                            <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-[10px] uppercase font-bold text-secondary">${item.brand}</span>
+                                            <h3 class="text-sm font-bold text-darkSlate">${item.name}</h3>
+                                            <div class="flex items-center gap-2 text-xs text-secondaryText">
+                                                ${item.selectedColor ? `<span>Color: ${item.selectedColor}</span>` : ''}
+                                                ${item.selectedSize ? `<span>• Size: ${item.selectedSize}</span>` : ''}
+                                            </div>
+                                            <span class="text-sm font-extrabold text-primary sm:hidden">$${(item.price * item.quantity).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                                        <!-- Quantity controls -->
+                                        <div class="flex items-center border border-borderCol rounded-xl overflow-hidden bg-bgOffWhite">
+                                            <button onclick="updateCartQty('${item.id}', ${item.quantity - 1})" class="px-3 py-2 text-secondaryText hover:text-darkSlate"><i class="fa-solid fa-minus text-xs"></i></button>
+                                            <span class="px-3 text-xs font-bold text-darkSlate">${item.quantity}</span>
+                                            <button onclick="updateCartQty('${item.id}', ${item.quantity + 1})" class="px-3 py-2 text-secondaryText hover:text-darkSlate"><i class="fa-solid fa-plus text-xs"></i></button>
+                                        </div>
+
+                                        <span class="text-base font-extrabold text-primary hidden sm:inline">$${(item.price * item.quantity).toFixed(2)}</span>
+
+                                        <button onclick="removeFromCart('${item.id}')" class="text-secondaryText hover:text-accent p-2 transition-colors">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Order Summary Sidebar -->
+                        <div class="lg:col-span-4 bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle h-fit flex flex-col gap-6">
+                            <h3 class="text-lg font-extrabold text-darkSlate pb-4 border-b border-borderCol">Order Summary</h3>
+                            
+                            <div class="flex flex-col gap-3 text-sm">
+                                <div class="flex items-center justify-between text-secondaryText">
+                                    <span>Subtotal</span>
+                                    <span class="font-bold text-darkSlate">$${subtotal.toFixed(2)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-secondaryText">
+                                    <span>Estimated Shipping</span>
+                                    <span class="font-bold text-success">${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-secondaryText">
+                                    <span>Estimated Tax</span>
+                                    <span class="font-bold text-darkSlate">$0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Coupon Input -->
+                            <div class="flex gap-2 pt-4 border-t border-borderCol">
+                                <input type="text" id="coupon-input" placeholder="Coupon code (e.g. AURA2026)" class="bg-bgOffWhite border border-borderCol rounded-xl px-3 py-2 text-xs text-darkSlate focus:outline-none flex-1">
+                                <button onclick="applyCoupon()" class="bg-bgOffWhite hover:bg-primary/5 text-primary text-xs font-bold px-4 py-2 rounded-xl border border-borderCol transition-colors">Apply</button>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-4 border-t border-borderCol text-base font-extrabold text-darkSlate">
+                                <span>Total</span>
+                                <span class="text-xl text-primary">$${total.toFixed(2)}</span>
+                            </div>
+
+                            <button onclick="router.navigate('checkout')" class="w-full bg-secondary hover:bg-primary text-white font-bold py-4 rounded-2xl shadow-subtle transition-all flex items-center justify-center gap-2">
+                                <span>Proceed to Checkout</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- WISHLIST PAGE ---
+        function renderWishlistPage() {
+            if (state.wishlist.length === 0) {
+                return `
+                    <div class="max-w-4xl mx-auto px-4 py-20 text-center flex flex-col items-center gap-6">
+                        <div class="w-24 h-24 rounded-full bg-accent/10 text-accent flex items-center justify-center text-4xl shadow-subtle">
+                            <i class="fa-regular fa-heart"></i>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <h2 class="text-2xl font-extrabold text-darkSlate">Your wishlist is currently empty.</h2>
+                            <p class="text-sm text-secondaryText max-w-md mx-auto">Tap the heart icon on any product to save items for later.</p>
+                        </div>
+                        <button onclick="router.navigate('products')" class="bg-primary hover:bg-secondary text-white font-bold px-8 py-3.5 rounded-2xl shadow-subtle transition-all">
+                            Browse Products
+                        </button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <h1 class="text-3xl font-extrabold text-darkSlate mb-8">My Wishlist (${state.wishlist.length} items)</h1>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        ${state.wishlist.map(id => {
+                            const p = PRODUCTS_DATA.find(prod => prod.id === id);
+                            return p ? renderProductCard(p) : '';
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CHECKOUT PAGE ---
+        function renderCheckoutPage() {
+            const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = subtotal > 50 ? 0 : 9.99;
+            const total = subtotal + shipping;
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <div class="flex items-center gap-2 text-xs text-secondaryText mb-8">
+                        <a href="#cart" onclick="router.navigate('cart')" class="hover:text-primary">Cart</a>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        <span class="text-darkSlate font-bold">Checkout</span>
+                    </div>
+
+                    <h1 class="text-3xl font-extrabold text-darkSlate mb-8">Secure Checkout</h1>
+
+                    <form id="checkout-form" onsubmit="handlePlaceOrder(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                        <!-- Left Steps -->
+                        <div class="lg:col-span-8 flex flex-col gap-8">
+                            
+                            <!-- Step 1: Shipping Address -->
+                            <div class="bg-cardWhite p-6 sm:p-8 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-6">
+                                <div class="flex items-center gap-3 pb-4 border-b border-borderCol">
+                                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">1</div>
+                                    <h3 class="text-lg font-extrabold text-darkSlate">Shipping Address</h3>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Full Name</label>
+                                        <input type="text" required value="${state.currentUser ? state.currentUser.name : ''}" placeholder="Alexander Vance" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Email Address</label>
+                                        <input type="email" required value="${state.currentUser ? state.currentUser.email : ''}" placeholder="alexander@example.com" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                    </div>
+                                    <div class="sm:col-span-2 flex flex-col gap-1.5">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Street Address</label>
+                                        <input type="text" required placeholder="742 Evergreen Terrace, Apt 4B" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">City</label>
+                                        <input type="text" required placeholder="New York" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Postal / Zip Code</label>
+                                        <input type="text" required placeholder="10001" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Delivery Method -->
+                            <div class="bg-cardWhite p-6 sm:p-8 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-6">
+                                <div class="flex items-center gap-3 pb-4 border-b border-borderCol">
+                                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">2</div>
+                                    <h3 class="text-lg font-extrabold text-darkSlate">Delivery Method</h3>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <label class="border-2 border-secondary bg-secondary/5 p-4 rounded-2xl flex items-center justify-between cursor-pointer">
+                                        <div class="flex items-center gap-3">
+                                            <input type="radio" name="delivery" checked class="text-secondary">
+                                            <div>
+                                                <h4 class="text-xs font-bold text-darkSlate">Aura Express Delivery</h4>
+                                                <span class="text-[10px] text-secondaryText">1-2 business days</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-bold text-success">${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                                    </label>
+                                    <label class="border border-borderCol bg-bgOffWhite p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-secondary transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <input type="radio" name="delivery" class="text-secondary">
+                                            <div>
+                                                <h4 class="text-xs font-bold text-darkSlate">Standard Ground</h4>
+                                                <span class="text-[10px] text-secondaryText">3-5 business days</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-bold text-darkSlate">FREE</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Payment Method -->
+                            <div class="bg-cardWhite p-6 sm:p-8 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-6">
+                                <div class="flex items-center gap-3 pb-4 border-b border-borderCol">
+                                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">3</div>
+                                    <h3 class="text-lg font-extrabold text-darkSlate">Payment Method (Simulation Demo)</h3>
+                                </div>
+                                <div class="flex flex-col gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer"><input type="radio" name="payment" checked onchange="togglePaymentFields('card')" class="text-secondary"> Credit/Debit Card</label>
+                                        <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer"><input type="radio" name="payment" onchange="togglePaymentFields('cod')" class="text-secondary"> Cash on Delivery</label>
+                                    </div>
+                                    <div id="card-payment-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-borderCol">
+                                        <div class="sm:col-span-2 flex flex-col gap-1.5">
+                                            <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Card Number</label>
+                                            <input type="text" placeholder="4532 •••• •••• 8924" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                        </div>
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Expiry Date</label>
+                                            <input type="text" placeholder="MM/YY" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                        </div>
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">CVV Security Code</label>
+                                            <input type="password" placeholder="123" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Right Summary & Place Order -->
+                        <div class="lg:col-span-4 bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle h-fit flex flex-col gap-6">
+                            <h3 class="text-lg font-extrabold text-darkSlate pb-4 border-b border-borderCol">Order Summary</h3>
+                            <div class="flex flex-col gap-4 max-h-60 overflow-y-auto pr-2">
+                                ${state.cart.map(item => `
+                                    <div class="flex items-center justify-between text-xs">
+                                        <div class="flex items-center gap-3">
+                                            <img src="${item.image}" class="w-10 h-10 rounded-lg object-cover bg-bgOffWhite">
+                                            <div>
+                                                <h4 class="font-bold text-darkSlate line-clamp-1">${item.name}</h4>
+                                                <span class="text-secondaryText">Qty: ${item.quantity}</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-bold text-primary">$${(item.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="flex flex-col gap-3 pt-4 border-t border-borderCol text-sm">
+                                <div class="flex items-center justify-between text-secondaryText">
+                                    <span>Subtotal</span>
+                                    <span class="font-bold text-darkSlate">$${subtotal.toFixed(2)}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-secondaryText">
+                                    <span>Shipping</span>
+                                    <span class="font-bold text-success">${shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-borderCol text-base font-extrabold text-darkSlate">
+                                <span>Total Amount</span>
+                                <span class="text-xl text-primary">$${total.toFixed(2)}</span>
+                            </div>
+                            <button type="submit" class="w-full bg-secondary hover:bg-primary text-white font-bold py-4 rounded-2xl shadow-subtle transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>Place Secure Order</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        // --- ORDER SUCCESS PAGE ---
+        function renderOrderSuccessPage(order) {
+            return `
+                <div class="max-w-3xl mx-auto px-4 py-20 text-center flex flex-col items-center gap-6">
+                    <div class="w-24 h-24 rounded-full bg-success/10 text-success flex items-center justify-center text-4xl shadow-subtle animate-bounce">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-secondary">Order Placed Successfully</span>
+                        <h2 class="text-3xl font-extrabold text-darkSlate">Thank you for your order!</h2>
+                        <p class="text-sm text-secondaryText max-w-md mx-auto">We've received your order and are preparing it for express fulfillment. Order number: <strong class="text-primary">${order ? order.orderId : 'AURA-89421'}</strong></p>
+                    </div>
+                    <div class="bg-cardWhite p-6 rounded-2xl border border-borderCol w-full max-w-md text-left flex flex-col gap-3 shadow-subtle">
+                        <div class="flex justify-between text-xs text-secondaryText">
+                            <span>Estimated Delivery</span>
+                            <span class="font-bold text-darkSlate">2 Business Days</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-secondaryText">
+                            <span>Payment Status</span>
+                            <span class="font-bold text-success">Paid (Simulated Demo)</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="router.navigate('account')" class="bg-bgOffWhite hover:bg-primary/5 text-primary text-xs font-bold px-6 py-3 rounded-xl border border-borderCol transition-colors">
+                            View Order History
+                        </button>
+                        <button onclick="router.navigate('home')" class="bg-primary hover:bg-secondary text-white text-xs font-bold px-8 py-3 rounded-xl shadow-subtle transition-colors">
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- AUTHENTICATION (LOGIN / REGISTER) ---
+        function renderLoginPage() {
+            return `
+                <div class="max-w-md mx-auto px-4 py-16">
+                    <div class="bg-cardWhite p-8 sm:p-10 rounded-3xl border border-borderCol shadow-elevated flex flex-col gap-6">
+                        <div class="flex flex-col items-center text-center gap-2">
+                            <div class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-bold mb-2">
+                                <i class="fa-solid fa-cube"></i>
+                            </div>
+                            <h2 class="text-2xl font-extrabold text-darkSlate">Welcome back to Aura</h2>
+                            <p class="text-xs text-secondaryText">Sign in to access your orders, wishlist, and dashboard.</p>
+                        </div>
+                        <form onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Email Address</label>
+                                <input type="email" id="login-email" required placeholder="alexander@example.com" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Password</label>
+                                <input type="password" id="login-password" required placeholder="••••••••" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3.5 rounded-xl shadow-subtle transition-all mt-2">
+                                Sign In
+                            </button>
+                        </form>
+                        <div class="text-center pt-4 border-t border-borderCol text-xs text-secondaryText">
+                            Don't have an account yet? <a href="#register" onclick="router.navigate('register')" class="text-secondary font-bold hover:underline">Create Account</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRegisterPage() {
+            return `
+                <div class="max-w-md mx-auto px-4 py-16">
+                    <div class="bg-cardWhite p-8 sm:p-10 rounded-3xl border border-borderCol shadow-elevated flex flex-col gap-6">
+                        <div class="flex flex-col items-center text-center gap-2">
+                            <div class="w-12 h-12 rounded-2xl bg-secondary text-white flex items-center justify-center text-xl font-bold mb-2">
+                                <i class="fa-solid fa-cube"></i>
+                            </div>
+                            <h2 class="text-2xl font-extrabold text-darkSlate">Create Aura Account</h2>
+                            <p class="text-xs text-secondaryText">Join our community for a calm, premium marketplace experience.</p>
+                        </div>
+                        <form onsubmit="handleRegisterSubmit(event)" class="flex flex-col gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Full Name</label>
+                                <input type="text" id="reg-name" required placeholder="Alexander Vance" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Email Address</label>
+                                <input type="email" id="reg-email" required placeholder="alexander@example.com" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Password</label>
+                                <input type="password" id="reg-password" required placeholder="••••••••" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <button type="submit" class="w-full bg-secondary hover:bg-primary text-white font-bold py-3.5 rounded-xl shadow-subtle transition-all mt-2">
+                                Register Account
+                            </button>
+                        </form>
+                        <div class="text-center pt-4 border-t border-borderCol text-xs text-secondaryText">
+                            Already have an account? <a href="#login" onclick="router.navigate('login')" class="text-secondary font-bold hover:underline">Sign In</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ACCOUNT DASHBOARD ---
+        function renderAccountPage() {
+            const user = state.currentUser || { name: 'Alexander Vance', email: 'alexander@example.com' };
+            const orders = state.orders;
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <div class="flex items-center justify-between pb-6 border-b border-borderCol mb-8">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary">Account Dashboard</span>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold text-darkSlate">Welcome, ${user.name}</h1>
+                        </div>
+                        <button onclick="handleLogout()" class="bg-cardWhite hover:bg-accent/10 text-accent text-xs font-bold px-5 py-2.5 rounded-xl border border-borderCol transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Left Profile Card -->
+                        <div class="bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-6 h-fit">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center text-2xl font-bold shadow-subtle">
+                                    ${user.name.charAt(0)}
+                                </div>
+                                <div class="flex flex-col">
+                                    <h3 class="font-extrabold text-darkSlate text-base">${user.name}</h3>
+                                    <span class="text-xs text-secondaryText">${user.email}</span>
+                                    <span class="text-[10px] text-success font-semibold mt-1">Verified Member</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2 text-xs font-semibold pt-4 border-t border-borderCol text-secondaryText">
+                                <div class="flex justify-between py-1.5"><span>Saved Addresses:</span> <strong class="text-darkSlate">1 Default</strong></div>
+                                <div class="flex justify-between py-1.5"><span>Payment Methods:</span> <strong class="text-darkSlate">Visa ending in 8924</strong></div>
+                                <div class="flex justify-between py-1.5"><span>Wishlist Items:</span> <strong class="text-darkSlate">${state.wishlist.length} Items</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Orders History -->
+                        <div class="lg:col-span-2 flex flex-col gap-6">
+                            <h3 class="text-lg font-extrabold text-darkSlate">Order History (${orders.length})</h3>
+                            ${orders.length === 0 ? `
+                                <div class="bg-cardWhite p-8 rounded-3xl border border-borderCol text-center text-secondaryText text-xs">
+                                    You have not placed any orders yet.
+                                </div>
+                            ` : orders.map(ord => `
+                                <div class="bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-4">
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-4 border-b border-borderCol">
+                                        <div>
+                                            <span class="text-xs text-secondaryText">Order ID: <strong class="text-darkSlate">${ord.orderId}</strong></span>
+                                            <div class="text-[10px] text-secondaryText mt-0.5">${ord.date}</div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="bg-success/10 text-success text-xs font-bold px-3 py-1 rounded-full">${ord.status}</span>
+                                            <span class="text-base font-extrabold text-primary">$${ord.total.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        ${ord.items.map(item => `
+                                            <div class="flex items-center justify-between text-xs">
+                                                <div class="flex items-center gap-3">
+                                                    <img src="${item.image}" class="w-10 h-10 rounded-lg object-cover bg-bgOffWhite">
+                                                    <span class="font-bold text-darkSlate">${item.name} (x${item.quantity})</span>
+                                                </div>
+                                                <span class="text-secondaryText">$${(item.price * item.quantity).toFixed(2)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ABOUT & CONTACT PAGES ---
+        function renderAboutPage() {
+            return `
+                <div class="max-w-4xl mx-auto px-4 py-16 flex flex-col gap-12">
+                    <div class="flex flex-col items-center text-center gap-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-secondary">About Aura Market</span>
+                        <h1 class="text-4xl font-extrabold text-darkSlate tracking-tight">Commerce, reimagined for calm and clarity.</h1>
+                        <p class="text-secondaryText text-base max-w-2xl leading-relaxed">
+                            Inspired by the vast scale and reliability of global marketplaces, Aura Market was built to eliminate digital noise and bring a serene, modern aesthetic to everyday online shopping.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                        <div class="bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg"><i class="fa-solid fa-feather"></i></div>
+                            <h3 class="font-bold text-darkSlate text-base">Calm & Minimal</h3>
+                            <p class="text-xs text-secondaryText leading-relaxed">No flashing banners or overwhelming clutter. Just pristine product curation.</p>
+                        </div>
+                        <div class="bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></div>
+                            <h3 class="font-bold text-darkSlate text-base">Uncompromising Quality</h3>
+                            <p class="text-xs text-secondaryText leading-relaxed">Every brand and product in our catalog undergoes strict verification for excellence.</p>
+                        </div>
+                        <div class="bg-cardWhite p-6 rounded-3xl border border-borderCol shadow-subtle flex flex-col gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center text-lg"><i class="fa-solid fa-bolt"></i></div>
+                            <h3 class="font-bold text-darkSlate text-base">Express Fulfillment</h3>
+                            <p class="text-xs text-secondaryText leading-relaxed">Next-day global delivery powered by intelligent supply chain algorithms.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderContactPage() {
+            return `
+                <div class="max-w-3xl mx-auto px-4 py-16">
+                    <div class="bg-cardWhite p-8 sm:p-12 rounded-3xl border border-borderCol shadow-elevated flex flex-col gap-8">
+                        <div class="flex flex-col items-center text-center gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-secondary">Customer Support</span>
+                            <h1 class="text-3xl font-extrabold text-darkSlate">How can we help you today?</h1>
+                            <p class="text-xs text-secondaryText">Our support concierge team is available 24/7 to answer questions.</p>
+                        </div>
+                        <form onsubmit="handleContactSubmit(event)" class="flex flex-col gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Your Name</label>
+                                    <input type="text" required placeholder="Alexander Vance" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Email Address</label>
+                                    <input type="email" required placeholder="alexander@example.com" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Subject</label>
+                                <input type="text" required placeholder="Order inquiry / Shipping question" class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold uppercase tracking-wider text-secondaryText">Message</label>
+                                <textarea rows="4" required placeholder="Type your message here..." class="bg-bgOffWhite border border-borderCol rounded-xl p-3 text-sm text-darkSlate focus:outline-none"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3.5 rounded-xl shadow-subtle transition-all mt-2">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ==========================================
+           6. INTERACTION LOGIC & EVENT HANDLERS
+           ========================================== */
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenuOverlay.classList.remove('hidden');
+                setTimeout(() => {
+                    mobileMenuOverlay.classList.remove('opacity-0');
+                    mobileMenuDrawer.classList.remove('-translate-x-full');
+                }, 10);
+            });
+        }
+
+        function closeMobileMenu() {
+            if (mobileMenuDrawer && mobileMenuOverlay) {
+                mobileMenuDrawer.classList.add('-translate-x-full');
+                mobileMenuOverlay.classList.add('opacity-0');
+                setTimeout(() => mobileMenuOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+        function toggleMobileSearch() {
+            const bar = document.getElementById('mobile-search-bar');
+            bar.classList.toggle('hidden');
+        }
+
+        function handleSearchSubmit(e) {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            const cat = document.getElementById('search-category').value;
+            state.filters.search = query;
+            state.filters.category = cat;
+            router.navigate('products');
+        }
+
+        function handleMobileSearchSubmit(e) {
+            e.preventDefault();
+            const query = document.getElementById('mobile-search-input').value.trim();
+            state.filters.search = query;
+            router.navigate('products');
+        }
+
+        function filterByCategory(cat) {
+            state.filters.category = cat;
+            state.filters.search = '';
+            router.navigate('products');
+        }
+
+        function resetFilters() {
+            state.filters = {
+                category: 'all',
+                search: '',
+                brand: 'all',
+                priceMax: 2000,
+                rating: 0,
+                sort: 'recommended'
+            };
+            router.navigate('products');
+        }
+
+        function applyFilters() {
+            const catEl = document.querySelector('input[name="filter-cat"]:checked');
+            if (catEl) state.filters.category = catEl.value;
+
+            const brandEl = document.getElementById('filter-brand');
+            if (brandEl) state.filters.brand = brandEl.value;
+
+            const priceEl = document.getElementById('filter-price');
+            if (priceEl) state.filters.priceMax = parseFloat(priceEl.value);
+
+            const ratingEl = document.querySelector('input[name="filter-rating"]:checked');
+            if (ratingEl) state.filters.rating = parseFloat(ratingEl.value);
+
+            const sortEl = document.getElementById('sort-select');
+            if (sortEl) state.filters.sort = sortEl.value;
+
+            renderProductsGrid();
+        }
+
+        function renderProductsGrid() {
+            const grid = document.getElementById('products-grid');
+            const countEl = document.getElementById('product-count');
+            if (!grid) return;
+
+            let filtered = PRODUCTS_DATA.filter(p => {
+                if (state.filters.category !== 'all' && p.category !== state.filters.category) return false;
+                if (state.filters.brand !== 'all' && p.brand !== state.filters.brand) return false;
+                if (p.price > state.filters.priceMax) return false;
+                if (p.rating < state.filters.rating) return false;
+                if (state.filters.search) {
+                    const q = state.filters.search.toLowerCase();
+                    const matchName = p.name.toLowerCase().includes(q);
+                    const matchDesc = p.description.toLowerCase().includes(q);
+                    const matchBrand = p.brand.toLowerCase().includes(q);
+                    const matchTags = p.tags.some(t => t.toLowerCase().includes(q));
+                    if (!matchName && !matchDesc && !matchBrand && !matchTags) return false;
+                }
+                return true;
+            });
+
+            // Sorting
+            if (state.filters.sort === 'newest') {
+                filtered.reverse();
+            } else if (state.filters.sort === 'price-low') {
+                filtered.sort((a,b) => a.price - b.price);
+            } else if (state.filters.sort === 'price-high') {
+                filtered.sort((a,b) => b.price - a.price);
+            } else if (state.filters.sort === 'rating') {
+                filtered.sort((a,b) => b.rating - a.rating);
+            }
+
+            if (countEl) countEl.innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center flex flex-col items-center gap-4 bg-cardWhite rounded-3xl border border-borderCol">
+                        <i class="fa-solid fa-magnifying-glass text-4xl text-secondaryText"></i>
+                        <h3 class="text-lg font-bold text-darkSlate">No products found matching your filters</h3>
+                        <button onclick="resetFilters()" class="bg-primary text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-subtle">Reset Filters</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => renderProductCard(p)).join('');
+        }
+
+        function initProductsInteractions() {
+            // Set initial UI values based on state
+            const brandSelect = document.getElementById('filter-brand');
+            if (brandSelect) brandSelect.value = state.filters.brand;
+
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) sortSelect.value = state.filters.sort;
+
+            renderProductsGrid();
+        }
+
+        function initHomeInteractions() {}
+
+        // Cart Actions
+        function addToCart(productId) {
+            const product = PRODUCTS_DATA.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = state.cart.find(item => item.id === productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                state.cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.images[0],
+                    brand: product.brand,
+                    quantity: 1,
+                    selectedColor: product.colors ? product.colors[0] : null,
+                    selectedSize: product.sizes ? product.sizes[0] : null
+                });
+            }
+            saveState();
+            showToast(`Added "${product.name}" to cart ✓`, 'success');
+        }
+
+        function updateCartQty(productId, newQty) {
+            if (newQty <= 0) {
+                removeFromCart(productId);
+                return;
+            }
+            const item = state.cart.find(i => i.id === productId);
+            if (item) {
+                item.quantity = newQty;
+                saveState();
+                router.render();
+            }
+        }
+
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(i => i.id !== productId);
+            saveState();
+            showToast('Product removed from cart', 'error');
+            router.render();
+        }
+
+        function applyCoupon() {
+            const code = document.getElementById('coupon-input').value.trim();
+            if (code === 'AURA2026') {
+                showToast('Coupon applied successfully! 10% off', 'success');
+            } else {
+                showToast('Invalid or expired coupon code', 'error');
+            }
+        }
+
+        // Wishlist Actions
+        function toggleWishlist(productId) {
+            const idx = state.wishlist.indexOf(productId);
+            if (idx > -1) {
+                state.wishlist.splice(idx, 1);
+                showToast('Removed from wishlist', 'error');
+            } else {
+                state.wishlist.push(productId);
+                showToast('Added to wishlist ♥', 'wishlist');
+            }
+            saveState();
+            router.render();
+        }
+
+        // Product Detail State Helpers
+        let detailQty = 1;
+        let selectedColor = null;
+        let selectedSize = null;
+
+        function selectColor(c) {
+            selectedColor = c;
+            document.getElementById('selected-color-label').innerText = c;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                if (btn.innerText === c) {
+                    btn.className = 'color-btn px-4 py-2 rounded-xl text-xs font-bold border border-secondary bg-secondary/10 text-secondary transition-all';
+                } else {
+                    btn.className = 'color-btn px-4 py-2 rounded-xl text-xs font-bold border border-borderCol text-secondaryText transition-all';
+                }
+            });
+        }
+
+        function selectSize(s) {
+            selectedSize = s;
+            document.getElementById('selected-size-label').innerText = s;
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                if (btn.innerText === s) {
+                    btn.className = 'size-btn px-4 py-2 rounded-xl text-xs font-bold border border-secondary bg-secondary/10 text-secondary transition-all';
+                } else {
+                    btn.className = 'size-btn px-4 py-2 rounded-xl text-xs font-bold border border-borderCol text-secondaryText transition-all';
+                }
+            });
+        }
+
+        function incrementDetailQty() {
+            detailQty++;
+            const el = document.getElementById('detail-qty');
+            if (el) el.innerText = detailQty;
+        }
+
+        function decrementDetailQty() {
+            if (detailQty > 1) {
+                detailQty--;
+                const el = document.getElementById('detail-qty');
+                if (el) el.innerText = detailQty;
+            }
+        }
+
+        function addDetailToCart(productId) {
+            const product = PRODUCTS_DATA.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = state.cart.find(item => item.id === productId && item.selectedColor === (selectedColor || product.colors?.[0]));
+            if (existing) {
+                existing.quantity += detailQty;
+            } else {
+                state.cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.images[0],
+                    brand: product.brand,
+                    quantity: detailQty,
+                    selectedColor: selectedColor || product.colors?.[0] || null,
+                    selectedSize: selectedSize || product.sizes?.[0] || null
+                });
+            }
+            saveState();
+            showToast(`Added ${detailQty}x "${product.name}" to cart ✓`, 'success');
+        }
+
+        function buyNow(productId) {
+            addDetailToCart(productId);
+            router.navigate('checkout');
+        }
+
+        function initProductDetailInteractions() {
+            detailQty = 1;
+            const product = PRODUCTS_DATA.find(p => p.id === state.routeParams.id);
+            if (product) {
+                selectedColor = product.colors ? product.colors[0] : null;
+                selectedSize = product.sizes ? product.sizes[0] : null;
+            }
+        }
+
+        // Quick View Modal
+        function openQuickView(productId) {
+            const product = PRODUCTS_DATA.find(p => p.id === productId);
+            if (!product) return;
+
+            const modal = document.getElementById('quick-view-modal');
+            const content = document.getElementById('quick-view-content');
+
+            content.innerHTML = `
+                <button onclick="closeQuickView()" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-bgOffWhite hover:bg-primary hover:text-white transition-colors flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 p-6 sm:p-10 gap-8 items-center">
+                    <div class="aspect-square rounded-2xl overflow-hidden bg-bgOffWhite">
+                        <img src="${product.images[0]}" alt="${product.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-secondary">${product.brand}</span>
+                        <h2 class="text-2xl font-extrabold text-darkSlate">${product.name}</h2>
+                        <div class="flex items-center gap-2 text-amber-500 text-sm">
+                            <i class="fa-solid fa-star"></i>
+                            <span class="font-bold text-darkSlate">${product.rating}</span>
+                            <span class="text-secondaryText text-xs">(${product.reviews} reviews)</span>
+                        </div>
+                        <div class="text-2xl font-black text-primary">$${product.price.toFixed(2)}</div>
+                        <p class="text-xs text-secondaryText leading-relaxed">${product.description}</p>
+                        <div class="flex gap-4 pt-4">
+                            <button onclick="addToCart('${product.id}'); closeQuickView();" class="flex-1 bg-primary hover:bg-secondary text-white font-bold py-3.5 rounded-xl shadow-subtle transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                            </button>
+                            <button onclick="closeQuickView(); router.navigate('product-detail', {id: '${product.id}'})" class="bg-bgOffWhite hover:bg-primary/5 text-primary text-xs font-bold px-6 py-3.5 rounded-xl border border-borderCol transition-colors">
+                                Full Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeQuickView() {
+            const modal = document.getElementById('quick-view-modal');
+            if (modal) {
+                modal.classList.add('opacity-0');
+                setTimeout(() => {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Checkout & Payment
+        function togglePaymentFields(type) {
+            const cardFields = document.getElementById('card-payment-fields');
+            if (cardFields) {
+                if (type === 'card') {
+                    cardFields.style.display = 'grid';
+                } else {
+                    cardFields.style.display = 'none';
+                }
+            }
+        }
+
+        function handlePlaceOrder(e) {
+            e.preventDefault();
+            if (state.cart.length === 0) {
+                showToast('Your cart is empty', 'error');
+                return;
+            }
+
+            const orderId = 'AURA-' + Math.floor(100000 + Math.random() * 900000);
+            const newOrder = {
+                orderId: orderId,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                items: [...state.cart],
+                total: state.cart.reduce((s, i) => s + (i.price * i.quantity), 0),
+                status: 'Processing'
+            };
+
+            state.orders.unshift(newOrder);
+            state.cart = [];
+            saveState();
+            showToast('Order placed successfully! 🎉', 'success');
+            router.navigate('order-success', { order: newOrder });
+        }
+
+        // Auth handlers
+        function handleAccountClick() {
+            if (state.currentUser) {
+                router.navigate('account');
+            } else {
+                router.navigate('login');
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            state.currentUser = { name: email.split('@')[0], email: email };
+            saveState();
+            showToast('Logged in successfully!', 'success');
+            router.navigate('account');
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            state.currentUser = { name: name, email: email };
+            saveState();
+            showToast('Account created successfully!', 'success');
+            router.navigate('account');
+        }
+
+        function handleLogout() {
+            state.currentUser = null;
+            saveState();
+            showToast('Signed out successfully', 'success');
+            router.navigate('home');
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            showToast('Message sent successfully! We will reply within 24 hours.', 'success');
+            e.target.reset();
+        }
+
+        function handleNewsletter(e) {
+            e.preventDefault();
+            showToast('Thank you for subscribing to Aura Insider!', 'success');
+            e.target.reset();
+        }
+
+        function showLocationModal() {
+            const loc = prompt('Enter your delivery city or postal code:', state.userLocation);
+            if (loc) {
+                state.userLocation = loc;
+                saveState();
+                const locText = document.getElementById('current-location-text');
+                if (locText) locText.innerText = loc;
+                showToast(`Delivery location updated to ${loc}`, 'success');
+            }
+        }
+
+        // Initialize App on Load
+        window.onload = function() {
+            router.navigate('home');
+            updateBadges();
+        };
+    </script>
+</body>
+</html>
